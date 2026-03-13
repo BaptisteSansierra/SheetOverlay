@@ -15,6 +15,7 @@ Unlike SwiftUI’s standard .sheet, it allows users to continue interacting with
 <p align="center">
   <img src="screenshots/screen1.png" alt="Detent1" width="300"/>
   <img src="screenshots/screen2.png" alt="Detent2" width="300"/>
+  <img src="screenshots/screen3.gif" alt="Animated" width="300"/>
 </p>
 
 
