@@ -1,0 +1,13 @@
+//
+//  TODO.txt
+//  SheetOverlay
+//
+//  Created by baptiste sansierra on 25/3/26.
+//
+
+- Handle scrollable content:
+  look at how libraries like Snap Paging or FloatingPanel solve this — FloatingPanel in particular has a very battle-tested implementation of exactly this scroll/sheet coordination, and it's open source. Worth reading their FloatingPanelController gesture handling code as a reference before rolling your own.
+
+- Improve keyboard handling:
+ * Limit offset if keyboardoffset + detent > screen height
+ * Allow dragging down to dismiss keyboard ?

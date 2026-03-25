@@ -41,3 +41,10 @@ internal struct SheetOverlayShadowPreferenceKey: PreferenceKey {
         value = nextValue()
     }
 }
+
+internal struct SheetOverlayKeyboardPolicyPreferenceKey: PreferenceKey {
+    static let defaultValue: SheetOverlayKeyboardPolicy = .ignore
+    static func reduce(value: inout SheetOverlayKeyboardPolicy, nextValue: () -> SheetOverlayKeyboardPolicy) {
+        value = nextValue()
+    }
+}

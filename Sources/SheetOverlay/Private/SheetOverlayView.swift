@@ -135,7 +135,7 @@ internal struct SheetOverlayView<Content: View>: View {
                 .clipShape(Rectangle())
             }
             .frame(height: currentHeight)
-            .offset(x: 0, y: currentOffset)
+            .offset(x: 0, y: currentOffset - sheetState.keyboardOffset)
             #if DEBUG
             .border(debug_displaySheetBorder ? .blue : .clear, width: 3)
             #endif
@@ -144,11 +144,19 @@ internal struct SheetOverlayView<Content: View>: View {
         .simultaneousGesture(
             DragGesture(minimumDistance: 10)
                 .updating($dragGestureOffset) { value, state, _ in
-                    if !dragging { dragging = true }
+                    guard sheetState.keyboardOffset == 0 else {
+                        // Disable dragging if
+                        return
+                    }
+                    if !dragging {
+                        // Set dragging mode
+                        dragging = true
+                    }
                     state = value.translation.height
                     updateDrag(value)
                 }
                 .onEnded { value in
+                    guard sheetState.keyboardOffset == 0 else { return }
                     dragging = false
                     finalizeDrag(currentHeight: currentHeight,
                                  dragVelocity: value.velocity.height)
@@ -246,6 +254,7 @@ internal struct SheetOverlayView<Content: View>: View {
             // Set lower detent
             nextDetentIndex = closestDetentIndex - 1
             guard nextDetentIndex != -1 else {
+                print("Velocity: \(dragVelocity) => dismiss")
                 dismiss()
                 return
             }
@@ -288,6 +297,7 @@ struct MockSheeetOverlayView: View {
     
     @State var sheetOverlayState: SheetOverlayState
     @State var appleSheet = false
+    @State var sliderValue: Double = 2
 
     var appleDetents: Set<PresentationDetent> {
         [.height(300)]
@@ -318,7 +328,12 @@ struct MockSheeetOverlayView: View {
                     .buttonStyle(.borderedProminent)
                     .padding()
                 }
+                Slider(value: $sliderValue, in: 0...10)
+                    .padding()
+                    .padding(.top, 40)
+                
                 Spacer()
+                
             }
             
             SheetOverlayView(sheetState: $sheetOverlayState,
@@ -330,6 +345,9 @@ struct MockSheeetOverlayView: View {
                 .presentationDragIndicator(.automatic)
                 .presentationCornerRadius(100)
                 .presentationBackground(.purple)
+                .presentationBackgroundInteraction(
+                    .enabled(upThrough: .large)
+                )
         }
     }
     
@@ -348,9 +366,9 @@ struct MockSheeetOverlayView: View {
     }
 }
 
-
 #Preview {
     MockSheeetOverlayView()
 }
 
 #endif
+

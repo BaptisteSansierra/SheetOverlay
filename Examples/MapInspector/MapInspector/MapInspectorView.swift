@@ -14,8 +14,12 @@ import CoreLocation
 @Observable class MapInspectorViewModel {
     var position: MapCameraPosition = .region(.barcelona)
     var showPicker: Bool = false
+    var showInput: Bool = false
+    var showInputAlert: Bool = false
     var lat: Double = 0
     var lon: Double = 0
+    var inputLat: String = ""
+    var inputLon: String = ""
     var locs: [CLLocationCoordinate2D] = []
     var detents: [SheetOverlayDetent] = [.height(250), .height(400)]
     var currentDetent = SheetOverlayDetent.height(250)
@@ -27,14 +31,25 @@ struct MapInspectorView: View {
     
     // MARK: - body
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             mapView
-            Spacer()
-            Button("Pick location") {
-                vm.showPicker.toggle()
+            HStack {
+                Spacer()
+                Button("Pick location") {
+                    vm.showPicker.toggle()
+                }
+                .buttonStyle(.borderedProminent)
+                Spacer()
+                Button("Input location") {
+                    vm.inputLat = String(format: "%0.4f", vm.lat)
+                    vm.inputLon = String(format: "%0.4f", vm.lon)
+                    vm.showInput.toggle()
+                }
+                .buttonStyle(.borderedProminent)
+                Spacer()
             }
-            .buttonStyle(.borderedProminent)
-            .padding(.vertical, 30)
+            .padding(.top, 30)
+            .padding(.bottom, 40)
         }
         .ignoresSafeArea()
         .sheetOverlay(isPresented: $vm.showPicker, selected: $vm.currentDetent) {
@@ -44,6 +59,13 @@ struct MapInspectorView: View {
                 .sheetOverlayDragIndicator(.visible)
                 .sheetOverlayBackground(.ultraThinMaterial)
                 .sheetOverlayShadow(color: .clear, radius: 0, x: 0, y: 0)
+        }
+        .sheetOverlay(isPresented: $vm.showInput) {
+            inputView
+                .sheetOverlayDetents([.height(200)])
+                .sheetOverlayCornerRadius(50)
+                .sheetOverlayBackground(.ultraThinMaterial)
+                .sheetOverlayKeyboardPolicy(.maxOffset(200))
         }
     }
 
@@ -75,21 +97,61 @@ struct MapInspectorView: View {
         }
     }
 
+    private var inputView: some View {
+        VStack {
+            HStack {
+                Text("Coordinates (keyboard offset demo)")
+                    .font(.title3)
+                    .fontWeight(.medium)
+                    .padding(.leading)
+                Spacer()
+            }
+            .padding(.bottom, 5)
+            .padding(.top, 20)
+            HStack {
+                TextField("Latitude", text: $vm.inputLat)
+                    .keyboardType(.numbersAndPunctuation)
+                    .autocorrectionDisabled()
+                    .textFieldStyle(.roundedBorder)
+                    .padding(.leading)
+                TextField("Longitude", text: $vm.inputLon)
+                    .keyboardType(.numbersAndPunctuation)
+                    .autocorrectionDisabled()
+                    .textFieldStyle(.roundedBorder)
+                    .padding(.trailing)
+                Spacer()
+            }
+            Spacer()
+            VStack(spacing: 0) {
+                Spacer()
+                Button("Pick location") {
+                    vm.showInput.toggle()
+                    vm.showInputAlert.toggle()
+                }
+                .buttonStyle(.borderedProminent)
+                .padding(.bottom, 40)
+            }
+        }
+        .alert("Not implemented",
+               isPresented: $vm.showInputAlert,
+               actions: {},
+               message: { Text("Work in progress...") })
+    }
+
     private var pickerView: some View {
         ZStack {
             VStack(alignment: .center, spacing: 0) {
-                
                 coordsView(title: "Coordinates DD",
                            coords: ("\(vm.lat)", "\(vm.lon)"))
-                .overlay {
-                    VStack {
-                        HStack {
+                    .overlay {
+                        VStack {
+                            HStack {
+                                Spacer()
+                                expandButtonView
+                            }
                             Spacer()
-                            expandButtonView
                         }
-                        Spacer()
                     }
-                }
                 
                 if vm.currentDetent == vm.detents[1] {
                     coordsView(title: "Coordinates DMS",
@@ -172,79 +234,6 @@ struct MapInspectorView: View {
         }
         .padding(.trailing)
     }
-
-
-    /*
-
-    @ViewBuilder
-    private var ddView: some View {
-        HStack {
-            Text("Coordinates DD")
-                .font(.title3)
-                .fontWeight(.medium)
-                .padding(.leading)
-            Spacer()
-
-        }
-        .padding(.bottom, 5)
-        HStack {
-            Text("Latitude: ")
-                .font(.callout)
-                .fontWeight(.medium)
-                .padding(.leading, 25)
-            Text("\(vm.lat)")
-                .font(.callout)
-                .fontWeight(.light)
-            Spacer()
-        }
-        HStack {
-            Text("Longitude: ")
-                .font(.callout)
-                .fontWeight(.medium)
-                .padding(.leading, 25)
-            Text("\(vm.lon)")
-                .font(.callout)
-                .fontWeight(.light)
-            Spacer()
-        }
-        .padding(.bottom, 20)
-    }
-
-    @ViewBuilder
-    private var dmsView: some View {
-        let (lat, lon) = toDMS(CLLocationCoordinate2D(latitude: vm.lat,
-                                                      longitude: vm.lon))
-        HStack {
-            Text("Coordinates DMS")
-                .font(.title3)
-                .fontWeight(.medium)
-                .padding(.leading)
-            Spacer()
-        }
-        .padding(.bottom, 5)
-        HStack {
-            Text("Latitude: ")
-                .font(.callout)
-                .fontWeight(.medium)
-                .padding(.leading, 25)
-            Text("\(lat)")
-                .font(.callout)
-                .fontWeight(.light)
-            Spacer()
-        }
-        HStack {
-            Text("Longitude: ")
-                .font(.callout)
-                .fontWeight(.medium)
-                .padding(.leading, 25)
-            Text("\(lon)")
-                .font(.callout)
-                .fontWeight(.light)
-            Spacer()
-        }
-        .padding(.bottom, 20)
-    }
-     */
     
     // MARK: private methods
     private func pickLocation() {

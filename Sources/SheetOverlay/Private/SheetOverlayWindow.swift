@@ -28,7 +28,7 @@ internal final class SheetOverlayWindow: UIWindow {
             return nil
         }
         let hit = super.hitTest(point, with: event)
-        let sheetHeight = sheetState.currentDetentHeight
+        let sheetHeight = sheetState.currentDetentHeight + sheetState.keyboardOffset
         guard self.bounds.height - point.y <= sheetHeight else {
             // Tap outside the sheet -> passes through
             return nil

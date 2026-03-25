@@ -8,11 +8,6 @@
 import SwiftUI
 import UIKit
 
-
-// TODO: Handle scrolling content
-//  look at how libraries like Snap Paging or FloatingPanel solve this — FloatingPanel in particular has a very battle-tested implementation of exactly this scroll/sheet coordination, and it's open source. Worth reading their FloatingPanelController gesture handling code as a reference before rolling your own.
-
-
 public struct SheetOverlayModifier<T: View>: ViewModifier {
 
     // MARK: States & Bindings
@@ -85,6 +80,9 @@ public struct SheetOverlayModifier<T: View>: ViewModifier {
                         }
                         .onPreferenceChange(SheetOverlayShadowPreferenceKey.self) {
                             sheetState.setShadow($0)
+                        }
+                        .onPreferenceChange(SheetOverlayKeyboardPolicyPreferenceKey.self) {
+                            sheetState.setKeyboardPolicy($0)
                         }
                         // Caller → sheet: push external changes in
                         .onChange(of: selectedDetent?.wrappedValue) { _, newValue in

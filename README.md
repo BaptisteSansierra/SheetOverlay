@@ -63,6 +63,7 @@ import SheetOverlay
         .sheetOverlayDragIndicator(.visible)
         .sheetOverlayBackground(.ultraThinMaterial)
         .sheetOverlayShadow(color: .black.opacity(0.2), radius: 8, x: 0, y: -2)
+        .sheetOverlayKeyboardPolicy(.ignore)
 }
 ```
 
@@ -83,6 +84,7 @@ import SheetOverlay
 | `.sheetOverlayDragIndicator(_:)` | `.automatic`, `.visible` or `.hidden` |
 | `.sheetOverlayShadow(color:radius:x:y:)` | Shadow on the sheet container |
 | `.sheetOverlayHideShadow()` | Hide the default shadow |
+| `.sheetOverlayKeyboardPolicy(_:)` | `.ignore`, `.maxOffset(value)` or `.fullOffset` |
 ---
 
 ## Detents
@@ -161,6 +163,7 @@ UIWindowScene
 | Drag to dismiss | ✅ | ✅ |
 | External detent control | ✅ | ✅ |
 | ScrollView coordination | ✅ | ⚠️ In progress |
+| Keyboard coordination | ✅ | ⚠️ Can be improved |
 
 ---
 

@@ -13,4 +13,3 @@ public enum SheetOverlayDetent: Sendable, Equatable, Hashable {
     case fraction(_ fraction: CGFloat)
     case height(_ height: CGFloat)
 }
-

@@ -20,15 +20,21 @@ import SwiftUI
     private(set) var cornerRadius: CGFloat = 20
     private(set) var background: AnyShapeStyle = AnyShapeStyle(.thinMaterial)
     private(set) var shadow: SheetOverlayShadowConfig = .default
+    private(set) var keyboardPolicy: SheetOverlayKeyboardPolicy = .ignore
 
     // MARK: computed from detents
     private var detentHeights: [CGFloat] = []
     private(set) var detentMap: [CGFloat: SheetOverlayDetent] = [:]
     private(set) var availableHeights: [CGFloat] = []
 
-    // MARK: public properties
+    // MARK: detents
     private(set) var defaultDetentIndex: Int = 0
     private(set) var currentDetentIndex: Int = 0
+
+    // MARK: public properties
+    private(set) var keyboardPresented: Bool = false
+    private var keyboardHeight: CGFloat = 0
+    private(set) var keyboardOffset: CGFloat = 0
 
     // MARK: computed properties
     var isPresented: Bool = false {
@@ -95,12 +101,18 @@ import SwiftUI
         self.isPresented = isPresented
         self.detents = defaultDetents
         computeDetents()
+        configureNotifications()
     }
 
     init(isPresented: Bool, detents: [SheetOverlayDetent]) {
         self.isPresented = isPresented
         self.detents = detents
         computeDetents()
+        configureNotifications()
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
     
     // MARK: public methods
@@ -128,7 +140,6 @@ import SwiftUI
             return
         }
         self.detents = detents
-        print("UPDATE SheetOverlayState - detents : \(detents)")
         computeDetents()
     }
     
@@ -147,7 +158,11 @@ import SwiftUI
     func setShadow(_ v: SheetOverlayShadowConfig) {
         shadow = v
     }
-    
+
+    func setKeyboardPolicy(_ v: SheetOverlayKeyboardPolicy) {
+        keyboardPolicy = v
+    }
+
     func setDefaultDetent(index: Int) {
         guard index >= 0 else {
             assertionFailure("index(\(index)) out of bounds (\(availableHeights.count))")
@@ -213,6 +228,48 @@ import SwiftUI
     }
 
     // MARK: private methods
+    private func configureNotifications() {
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(keyboardWillShow),
+                                               name: UIResponder.keyboardWillShowNotification,
+                                               object: nil)
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(keyboardWillHide),
+                                               name: UIResponder.keyboardWillHideNotification,
+                                               object: nil)
+    }
+
+    @objc private func keyboardWillShow(_ notification: Notification) {
+        guard let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+              let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
+            return
+        }
+        keyboardPresented = true
+        keyboardHeight = frame.height
+        guard keyboardPolicy != .ignore else { return }
+        withAnimation(.spring(response: duration, dampingFraction: 1.0, blendDuration: 0).delay(0.3)) {
+            switch keyboardPolicy {
+                case .ignore:
+                    keyboardOffset = 0
+                case .fullOffset:
+                    keyboardOffset = keyboardHeight
+                case .maxOffset(let maxHeight):
+                    keyboardOffset = min(maxHeight, keyboardHeight)
+            }
+        }
+    }
+
+    @objc private func keyboardWillHide(_ notification: Notification) {
+        guard let duration = notification.userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
+            return
+        }
+        keyboardPresented = false
+        keyboardHeight = 0
+        withAnimation(.spring(response: duration, dampingFraction: 1.0, blendDuration: 0)) {
+            keyboardOffset = 0
+        }
+    }
+    
     private func detentIndex(_ detent: SheetOverlayDetent) -> Int? {
         guard let idx = detentMap.firstIndex(where: { $0.value == detent }) else {
             assertionFailure("Unknown detent \(detent), detens=\(detents)  -  detentHeights=\(detentHeights)")

@@ -53,4 +53,11 @@ public extension View {
             value: SheetOverlayShadowConfig.none
         )
     }
+    
+    func sheetOverlayKeyboardPolicy(_ policy: SheetOverlayKeyboardPolicy) -> some View {
+        preference(
+            key: SheetOverlayKeyboardPolicyPreferenceKey.self,
+            value: policy
+        )
+    }
 }
